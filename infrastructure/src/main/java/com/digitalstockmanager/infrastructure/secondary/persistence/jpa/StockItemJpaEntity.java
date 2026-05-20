@@ -17,12 +17,13 @@ public class StockItemJpaEntity {
     private int threshold;
     private LocalDate expiryDate;
     private String status;
+    private String productType; // Explicit type tracking: "STANDARD" or "PERISHABLE"
 
     // Default constructor for JPA
     public StockItemJpaEntity() {}
 
     public StockItemJpaEntity(String itemCode, String itemName, BigDecimal price,
-                              int quantity, int threshold, LocalDate expiryDate, String status) {
+                              int quantity, int threshold, LocalDate expiryDate, String status, String productType) {
         this.itemCode = itemCode;
         this.itemName = itemName;
         this.price = price;
@@ -30,6 +31,7 @@ public class StockItemJpaEntity {
         this.threshold = threshold;
         this.expiryDate = expiryDate;
         this.status = status;
+        this.productType = productType;
     }
 
     // Getters and Setters
@@ -47,4 +49,6 @@ public class StockItemJpaEntity {
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public String getProductType() { return productType; }
+    public void setProductType(String productType) { this.productType = productType; }
 }

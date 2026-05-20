@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Onboard Product Use Case</title>
+    <style>
+        :root { --bg: #f8fafc; --brand: #2563eb; --border: #e2e8f0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg); padding: 30px; display: flex; justify-content: center; }
+        .container { background: white; max-width: 500px; width: 100%; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h2 { margin-bottom: 20px; color: #1e3a8a; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 5px; color: #475569; }
+        .control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+        .btn { width: 100%; padding: 12px; background: var(--brand); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .back-link { display: inline-block; margin-top: 15px; color: #64748b; text-decoration: none; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>✨ Use Case: Onboard Product</h2>
+    <form id="onboardForm">
+        <div class="form-group">
+            <label for="itemCode">Unique Product SKU</label>
+            <input type="text" id="itemCode" class="control" placeholder="e.g., APP-MAC-01" required>
+        </div>
+        <div class="form-group">
+            <label for="itemName">Product Name</label>
+            <input type="text" id="itemName" class="control" required>
+        </div>
+        <div class="form-group">
+            <label for="price">Unit Base Price ($)</label>
+            <input type="number" id="price" class="control" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="initialQuantity">Starting Quantity</label>
+            <input type="number" id="initialQuantity" class="control" value="0">
+        </div>
+        <div class="form-group">
+            <label for="threshold">Low Stock Warning Threshold</label>
+            <input type="number" id="threshold" class="control" value="10" required>
+        </div>
+        <div class="form-group">
+            <label for="expiryDate">Expiration Date (Leave blank if non-perishable variant)</label>
+            <input type="date" id="expiryDate" class="control">
+        </div>
+        <button type="submit" class="btn">Dispatch Registration Command</button>
+    </form>
+    <a href="index.html" class="back-link">← Return to Dashboard Workspace</a>
+</div>
+
+<script>
+    document.getElementById('onboardForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            itemCode: document.getElementById('itemCode').value.trim(),
+            itemName: document.getElementById('itemName').value.trim(),
+            price: parseFloat(document.getElementById('price').value),
+            initialQuantity: parseInt(document.getElementById('initialQuantity').value) || 0,
+            threshold: parseInt(document.getElementById('threshold').value),
+            expiryDate: document.getElementById('expiryDate').value || null
+        };
+        try {
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            alert(res.ok ? "Success: Polymorphic domain state instantiated!" : "Rejected by Core Invariant Logic.");
+            if(res.ok) document.getElementById('onboardForm').reset();
+        } catch (err) { alert("Network delivery failure."); }
+    });
+</script>
+</body>
+</html>

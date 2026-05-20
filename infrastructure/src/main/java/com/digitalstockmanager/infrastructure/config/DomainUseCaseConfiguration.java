@@ -2,8 +2,6 @@ package com.digitalstockmanager.infrastructure.config;
 
 import com.digitalstockmanager.application.ports.input.commands.*;
 import com.digitalstockmanager.application.ports.input.queries.ProductQueryService;
-import com.digitalstockmanager.application.ports.output.ProductCatalogRepository;
-import com.digitalstockmanager.application.ports.output.ProductQueryRepository;
 import com.digitalstockmanager.application.usecases.commands.*;
 import com.digitalstockmanager.application.usecases.queries.ProductQueryFacade;
 import com.digitalstockmanager.infrastructure.secondary.persistence.repositories.ProductRepositoryAdapter;

@@ -4,6 +4,8 @@ import com.digitalstockmanager.application.ports.output.ProductCatalogRepository
 import com.digitalstockmanager.application.ports.output.ProductQueryRepository;
 import com.digitalstockmanager.application.usecases.queries.ProductViewDto;
 import com.digitalstockmanager.domain.entities.StockItem;
+import com.digitalstockmanager.domain.entities.StandardStockItem;
+import com.digitalstockmanager.domain.entities.PerishableStockItem;
 import com.digitalstockmanager.domain.valueobjects.*;
 import com.digitalstockmanager.infrastructure.secondary.persistence.jpa.SpringDataProductRepository;
 import com.digitalstockmanager.infrastructure.secondary.persistence.jpa.StockItemJpaEntity;
@@ -23,17 +25,27 @@ public class ProductRepositoryAdapter implements ProductCatalogRepository, Produ
         this.jpaRepository = jpaRepository;
     }
 
-    // --- Outbound Command Port Mapping (Domain <-> JPA) ---
+    // --- Outbound Command Port Mapping (Domain -> JPA) ---
     @Override
     public void save(StockItem item) {
+        LocalDate expiry = null;
+        String type = "STANDARD";
+
+        // Extract features based on polymorphic identity matching
+        if (item instanceof PerishableStockItem perishable) {
+            expiry = perishable.getExpiryDate().getValue().orElse(null);
+            type = "PERISHABLE";
+        }
+
         StockItemJpaEntity entity = new StockItemJpaEntity(
             item.getItemCode().getValue(),
             item.getItemName().getValue(),
             item.getPrice().getValue(),
             item.getQuantity().getValue(),
             item.getThreshold().getValue(),
-            item.getExpiryDate().getValue().orElse(null),
-            item.getStatus().name()
+            expiry,
+            item.getStatus().name(),
+            type
         );
         jpaRepository.save(entity);
     }
@@ -75,15 +87,21 @@ public class ProductRepositoryAdapter implements ProductCatalogRepository, Produ
     }
 
     private StockItem toDomain(StockItemJpaEntity entity) {
-        // Triggers self-validation upon rebuilding state safely
-        StockItem item = StockItem.onboard(
-            new ItemCode(entity.getItemCode()),
-            new ItemName(entity.getItemName()),
-            new Price(entity.getPrice()),
-            new Quantity(entity.getQuantity()),
-            new StockThreshold(entity.getThreshold()),
-            new ExpiryDate(entity.getExpiryDate())
-        );
+        ItemCode code = new ItemCode(entity.getItemCode());
+        ItemName name = new ItemName(entity.getItemName());
+        Price price = new Price(entity.getPrice());
+        Quantity qty = new Quantity(entity.getQuantity());
+        StockThreshold threshold = new StockThreshold(entity.getThreshold());
+
+        StockItem item;
+
+        // Polymorphic Reconstruction Strategy
+        if ("PERISHABLE".equalsIgnoreCase(entity.getProductType())) {
+            item = new PerishableStockItem(code, name, price, qty, threshold, new ExpiryDate(entity.getExpiryDate()));
+        } else {
+            item = new StandardStockItem(code, name, price, qty, threshold);
+        }
+
         if ("DISCONTINUED".equals(entity.getStatus())) {
             item.discontinue();
         }

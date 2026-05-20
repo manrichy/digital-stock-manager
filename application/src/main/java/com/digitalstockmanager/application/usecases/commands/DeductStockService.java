@@ -19,7 +19,6 @@ public class DeductStockService implements DeductStockUseCase {
         StockItem item = repository.findByCode(new ItemCode(itemCode))
                 .orElseThrow(() -> new DomainException("Fulfillment subtraction failed. Item missing: " + itemCode));
 
-        // Critical Domain Invariant is safely run inside the core aggregate root entity itself
         item.deduct(new Quantity(quantityAmount));
         repository.save(item);
     }

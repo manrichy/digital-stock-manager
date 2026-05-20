@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Query Projection Registry Model View</title>
+    <style>
+        :root { --bg: #f8fafc; --border: #e2e8f0; --brand: #2563eb; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg); padding: 30px; }
+        .container { background: white; width: 100%; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        h2 { margin-bottom: 20px; color: #0f172a; }
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 8px 16px; background: #e2e8f0; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.85rem; color: #475569; }
+        .tab.active { background: var(--brand); color: white; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #f1f5f9; padding: 12px; color: #64748b; border-bottom: 2px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .badge.active { background: #d1fae5; color: #065f46; }
+        .badge.low-stock { background: #fef3c7; color: #92400e; }
+        .back-link { display: inline-block; margin-top: 20px; color: #64748b; text-decoration: none; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🔍 Query Component Model Projections</h2>
+
+    <div class="filter-tabs">
+        <button class="tab active" id="btn-all" onclick="fetchProjections('all')">Full Materialized State</button>
+        <button class="tab" id="btn-low" onclick="fetchProjections('low')">⚠️ Insufficient Balances</button>
+    </div>
+
+    <table id="projectionsTable">
+        <thead>
+            <tr>
+                <th>Item Code</th>
+                <th>Product Identifier</th>
+                <th>Calculated Pricing</th>
+                <th>Available Balance</th>
+                <th>Threshold Limit</th>
+                <th>Lifespan Terminus</th>
+                <th>Status Mapping</th>
+            </tr>
+        </thead>
+        <tbody id="registryBody">
+            <tr><td colspan="7" style="text-align:center; color:#94a3b8;">Loading model projections...</td></tr>
+        </tbody>
+    </table>
+
+    <a href="index.html" class="back-link">← Return to Dashboard Workspace</a>
+</div>
+
+<script>
+    async function fetchProjections(criteria) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(`btn-${criteria}`).classList.add('active');
+
+        let url = '/api/products';
+        if (criteria === 'low') url += '/alerts/low-stock';
+        else url += '/search?q=';
+
+        try {
+            const res = await fetch(url);
+            const items = await res.json();
+            const body = document.getElementById('registryBody');
+
+            if (!items || items.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:20px;">No projections matching criteria constraints found.</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = items.map(item => {
+                const isLow = item.quantity <= item.threshold;
+                return `
+                    <tr>
+                        <td><strong>${item.itemCode}</strong></td>
+                        <td>${item.itemName}</td>
+                        <td>$${item.price.toFixed(2)}</td>
+                        <td><span class="badge ${isLow ? 'low-stock' : 'active'}">${item.quantity}</span></td>
+                        <td>${item.threshold}</td>
+                        <td>${item.expiryDate || '—'}</td>
+                        <td><span class="badge active">${item.status}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (err) {
+            document.getElementById('registryBody').innerHTML = `<tr><td colspan="7" style="text-align:center; color:red; padding:20px;">Failure querying pipeline infrastructure.</td></tr>`;
+        }
+    }
+    document.addEventListener('DOMContentLoaded', () => fetchProjections('all'));
+</script>
+</body>
+</html>

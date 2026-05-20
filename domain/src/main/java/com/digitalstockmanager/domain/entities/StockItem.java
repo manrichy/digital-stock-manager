@@ -4,31 +4,22 @@ import com.digitalstockmanager.domain.exceptions.DomainException;
 import com.digitalstockmanager.domain.exceptions.InsufficientStockException;
 import com.digitalstockmanager.domain.valueobjects.*;
 
-import java.time.LocalDate;
-
-public class StockItem {
+public abstract class StockItem {
     private final ItemCode itemCode;
     private ItemName itemName;
     private Price price;
     private Quantity quantity;
     private StockThreshold threshold;
-    private ExpiryDate expiryDate;
     private ProductStatus status;
 
-    private StockItem(ItemCode itemCode, ItemName itemName, Price price,
-                      Quantity quantity, StockThreshold threshold, ExpiryDate expiryDate) {
+    protected StockItem(ItemCode itemCode, ItemName itemName, Price price,
+                        Quantity quantity, StockThreshold threshold) {
         this.itemCode = itemCode;
         this.itemName = itemName;
         this.price = price;
         this.quantity = quantity;
         this.threshold = threshold;
-        this.expiryDate = expiryDate;
         this.status = ProductStatus.ACTIVE;
-    }
-
-    public static StockItem onboard(ItemCode itemCode, ItemName itemName, Price price,
-                                    Quantity initialQuantity, StockThreshold threshold, ExpiryDate expiryDate) {
-        return new StockItem(itemCode, itemName, price, initialQuantity, threshold, expiryDate);
     }
 
     public void restock(Quantity amount) {
@@ -59,13 +50,7 @@ public class StockItem {
         return this.status == ProductStatus.ACTIVE && this.quantity.getValue() <= this.threshold.getValue();
     }
 
-    public boolean isExpiringWithin(LocalDate today, int daysWindow) {
-        if (this.status == ProductStatus.DISCONTINUED) return false;
-        LocalDate windowEnd = today.plusDays(daysWindow);
-        return this.expiryDate.isExpiringWithinWindow(today, windowEnd);
-    }
-
-    private void guardAgainstDiscontinued() {
+    protected void guardAgainstDiscontinued() {
         if (this.status == ProductStatus.DISCONTINUED) {
             throw new DomainException("Cannot modify stock data or quantities on a discontinued item.");
         }
@@ -76,6 +61,5 @@ public class StockItem {
     public Price getPrice() { return price; }
     public Quantity getQuantity() { return quantity; }
     public StockThreshold getThreshold() { return threshold; }
-    public ExpiryDate getExpiryDate() { return expiryDate; }
     public ProductStatus getStatus() { return status; }
 }

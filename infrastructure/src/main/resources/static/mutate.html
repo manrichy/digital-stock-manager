@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Execute Stock Mutation</title>
+    <style>
+        :root { --bg: #f8fafc; --brand: #475569; --border: #e2e8f0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg); padding: 30px; display: flex; justify-content: center; }
+        .container { background: white; max-width: 500px; width: 100%; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h2 { margin-bottom: 20px; color: #1e293b; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 5px; color: #475569; }
+        .control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+        .btn { width: 100%; padding: 12px; background: var(--brand); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .back-link { display: inline-block; margin-top: 15px; color: #64748b; text-decoration: none; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📈 Use Case: Commit Stock Mutation</h2>
+    <form id="mutationForm">
+        <div class="form-group">
+            <label for="mutateSku">Target Product SKU</label>
+            <input type="text" id="mutateSku" class="control" required placeholder="e.g., APP-MAC-01">
+        </div>
+        <div class="form-group">
+            <label for="mutationType">Transaction Context Mapping</label>
+            <select id="mutationType" class="control">
+                <option value="restock">Batch Supplier Inbound Restock (+)</option>
+                <option value="deduct">Order Assignment Outbound Allocation (-)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="mutateAmount">Quantity Magnitude (Delta)</label>
+            <input type="number" id="mutateAmount" class="control" min="1" value="1" required>
+        </div>
+        <button type="submit" class="btn">Execute Transaction Delta</button>
+    </form>
+    <a href="index.html" class="back-link">← Return to Dashboard Workspace</a>
+</div>
+
+<script>
+    document.getElementById('mutationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const sku = document.getElementById('mutateSku').value.trim();
+        const type = document.getElementById('mutationType').value;
+        const amount = parseInt(document.getElementById('mutateAmount').value);
+
+        try {
+            const res = await fetch(`/api/products/${sku}/${type}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: amount })
+            });
+            alert(res.ok ? "Ledger updated and projection balances recalibrated." : "Mutation rejected by domain constraints.");
+            if(res.ok) document.getElementById('mutationForm').reset();
+        } catch (err) { alert("Network link exception failure."); }
+    });
+</script>
+</body>
+</html>

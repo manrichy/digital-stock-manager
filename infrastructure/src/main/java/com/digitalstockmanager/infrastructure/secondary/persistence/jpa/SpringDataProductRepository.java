@@ -14,6 +14,6 @@ public interface SpringDataProductRepository extends JpaRepository<StockItemJpaE
     @Query("SELECT s FROM StockItemJpaEntity s WHERE s.status = 'ACTIVE' AND s.quantity <= s.threshold")
     List<StockItemJpaEntity> findLowStockAlerts();
 
-    @Query("SELECT s FROM StockItemJpaEntity s WHERE s.status = 'ACTIVE' AND s.expiryDate IS NOT NULL AND s.expiryDate BETWEEN :today AND :windowEnd")
+    @Query("SELECT s FROM StockItemJpaEntity s WHERE s.status = 'ACTIVE' AND s.productType = 'PERISHABLE' AND s.expiryDate IS NOT NULL AND s.expiryDate BETWEEN :today AND :windowEnd")
     List<StockItemJpaEntity> findExpiringProducts(@Param("today") LocalDate today, @Param("windowEnd") LocalDate windowEnd);
 }

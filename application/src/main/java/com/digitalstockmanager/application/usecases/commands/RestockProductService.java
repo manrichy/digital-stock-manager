@@ -21,8 +21,5 @@ public class RestockProductService implements RestockProductUseCase {
 
         item.restock(new Quantity(quantityAmount));
         repository.save(item);
-
-        // Architecture Note: You can dispatch your ProductRestocked Domain Event right here
-        // to propagate transactional events outwards into your Audit context infrastructure logs!
     }
 }

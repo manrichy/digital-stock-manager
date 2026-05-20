@@ -66,13 +66,11 @@ public class ProductCommandController {
         return ResponseEntity.ok(Map.of("message", "Product flagged as discontinued"));
     }
 
-    // Global Error Guard local override for quick implementation clarity
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleDomainErrors(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
     }
 
-    // Request Payloads Mapping Records
     public record AddProductRequest(String itemCode, String itemName, BigDecimal price, int initialQuantity, int threshold, LocalDate expiryDate) {}
     public record UpdateDetailsRequest(String itemName, BigDecimal price, int threshold) {}
 }
